@@ -1,18 +1,24 @@
-﻿@{
+﻿@model HomeViewModel
+@using System.Text.Json
+@{
     ViewData["Title"] = "Real-Time Agricultural Growth Stage Estimation";
 }
 
-<section class="hero-banner p-4 p-md-5 mb-4 fade-in-up">
+<!-- Dynamic Hero with Interactive GDD Stage Simulator -->
+<section class="hero-banner p-4 p-lg-5 mb-5 fade-in-up">
     <div class="row align-items-center g-4 position-relative" style="z-index:1;">
-        <div class="col-lg-8">
+        <div class="col-lg-7">
             <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2 mb-3">
-                <i class="bi bi-thermometer-sun me-1"></i>Thermal-Time GDD Intelligence
+                <i class="bi bi-broadcast me-1"></i>Live Open-Meteo Thermal-Time Platform
             </span>
-            <h1 class="display-5 fw-bold mb-3">CropProgress Monitor</h1>
+            <h1 class="display-5 fw-bold mb-3 lh-sm">
+                Know Your Crop's Exact Growth Stage — Before Every Field Operation
+            </h1>
             <p class="lead opacity-90 mb-4">
-                Estimate real-time crop growth stages from sowing date, field coordinates, and live Open-Meteo temperature &amp; rainfall data. Plan irrigation, fertilization, and crop protection on time.
+                CropProgress Monitor combines your field coordinates, sowing date, and real-time Open-Meteo weather data to compute Growing Degree Days (GDD), project upcoming milestones, and deliver localized agronomic advisories.
             </p>
-            <div class="d-flex flex-wrap gap-3">
+
+            <div class="d-flex flex-wrap gap-3 mb-4">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <a asp-controller="Dashboard" asp-action="Index" class="btn btn-wheat btn-lg px-4" data-show-loader="true">
@@ -25,76 +31,199 @@
                 else
                 {
                     <a asp-controller="Account" asp-action="Register" class="btn btn-wheat btn-lg px-4">
-                        <i class="bi bi-person-plus me-2"></i>Register as Farmer
+                        <i class="bi bi-person-plus me-2"></i>Create Free Account
                     </a>
                     <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-lg px-4">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Farmer Login
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Farmer Sign In
                     </a>
                 }
             </div>
+
+            <div class="row g-2 g-md-3">
+                <div class="col-4">
+                    <div class="stat-pill text-center text-md-start">
+                        <div class="fs-4 fw-bold text-warning">@Model.TotalCrops</div>
+                        <div class="small opacity-75">Configured Crops</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="stat-pill text-center text-md-start">
+                        <div class="fs-4 fw-bold text-warning">@Model.TotalStages</div>
+                        <div class="small opacity-75">GDD Stage Rules</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="stat-pill text-center text-md-start">
+                        <div class="fs-4 fw-bold text-warning">@Model.TotalRegisteredFields+</div>
+                        <div class="small opacity-75">Monitored Fields</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-lg-4">
-            <div class="bg-white text-dark rounded-4 p-4 shadow">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <span class="fw-bold text-success"><i class="bi bi-calculator me-1"></i>GDD Formula</span>
-                    <span class="badge-gold small">Near Real-Time</span>
+
+        <!-- Interactive Live GDD Simulator -->
+        <div class="col-lg-5">
+            <div class="glass-panel p-4 text-dark float-gentle">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="small text-uppercase fw-bold text-success">Interactive Preview</div>
+                        <h5 class="fw-bold mb-0">Live GDD Stage Simulator</h5>
+                    </div>
+                    <span class="badge-gold small"><i class="bi bi-cpu me-1"></i>Try It</span>
                 </div>
-                <div class="p-3 rounded-3 bg-light border mb-3 text-center">
-                    <code class="fs-6 fw-bold text-dark">GDD = max(0, (Tmax + Tmin)/2 − Tbase)</code>
+
+                <div class="mb-3">
+                    <label for="simCropSelect" class="form-label small fw-semibold mb-1">Select Crop</label>
+                    <select id="simCropSelect" class="form-select form-select-sm"></select>
                 </div>
-                <ul class="list-unstyled small mb-0 text-muted d-grid gap-2">
-                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Weather-adjusted instead of fixed calendars</li>
-                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>7-day forecast next-stage projection</li>
-                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>English, Hindi &amp; Punjabi advisories</li>
-                </ul>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label for="simDaysRange" class="form-label small fw-semibold mb-1">
+                            Days Since Sowing: <span id="simDaysVal" class="text-success">45</span>d
+                        </label>
+                        <input id="simDaysRange" type="range" class="form-range" min="1" max="140" value="45" />
+                    </div>
+                    <div class="col-6">
+                        <label for="simTempRange" class="form-label small fw-semibold mb-1">
+                            Avg Daily Temp: <span id="simTempVal" class="text-success">22</span>°C
+                        </label>
+                        <input id="simTempRange" type="range" class="form-range" min="5" max="38" value="22" />
+                    </div>
+                </div>
+
+                <div class="bg-light rounded-3 p-3 border mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small text-muted">Estimated Stage</span>
+                        <span id="simStageBadge" class="badge-stage">--</span>
+                    </div>
+                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                        <span>Accumulated GDD: <strong id="simGddVal" class="text-success">0</strong> °C·d</span>
+                        <span id="simPctVal">0%</span>
+                    </div>
+                    <div class="agri-progress">
+                        <div id="simProgressBar" class="agri-progress-bar" style="width: 0%;"></div>
+                    </div>
+                    <div id="simNextInfo" class="small text-muted mt-2"></div>
+                </div>
+
+                <div class="text-center">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-forest btn-sm w-100">View Your Live Fields</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-forest btn-sm w-100">
+                            Track Real Satellite &amp; Weather GDD for Your Farm <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    }
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="row g-4 mb-4">
-    <div class="col-md-6 col-lg-3">
-        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success bg-opacity-10 text-success fs-3 mb-3" style="width:52px;height:52px;">
-                <i class="bi bi-geo-alt"></i>
+<!-- Dynamic Crop Phenology Explorer (from SQL Server) -->
+@if (Model.Crops.Count > 0)
+{
+    <section class="mb-5 fade-in-up">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-3">
+            <div>
+                <span class="badge-stage mb-2 d-inline-block"><i class="bi bi-diagram-3 me-1"></i>Configurable Agronomy Engine</span>
+                <h2 class="fw-bold mb-1">Supported Crop Growth Models</h2>
+                <p class="text-muted mb-0">Explore the live stage thresholds stored in the platform database.</p>
             </div>
-            <h5 class="fw-bold">Field &amp; Geocoding</h5>
-            <p class="text-muted small mb-0">
-                Register multiple fields with crop, optional variety, sowing date, and instant village/city coordinate lookup.
-            </p>
+            <div class="d-flex flex-wrap gap-2" id="cropTabsContainer">
+                @for (int i = 0; i < Model.Crops.Count; i++)
+                {
+                    var crop = Model.Crops[i];
+                    <button type="button"
+                            class="crop-tab-btn @(i == 0 ? "active" : "")"
+                            data-crop-index="@i">
+                        @crop.Name
+                    </button>
+                }
+            </div>
         </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-warning bg-opacity-25 text-dark fs-3 mb-3" style="width:52px;height:52px;">
-                <i class="bi bi-signpost-split"></i>
-            </div>
-            <h5 class="fw-bold">Stage Timeline</h5>
-            <p class="text-muted small mb-0">
-                Track progression from Sowing through Germination, Vegetative Growth, Flowering, Grain Filling, and Harvest.
-            </p>
+
+        <div class="agri-card p-4">
+            @for (int i = 0; i < Model.Crops.Count; i++)
+            {
+                var crop = Model.Crops[i];
+                <div class="crop-panel @(i == 0 ? "" : "d-none")" data-crop-panel="@i">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
+                        <div>
+                            <h4 class="fw-bold mb-1">@crop.Name</h4>
+                            <p class="text-muted small mb-0">@crop.Description</p>
+                        </div>
+                        <span class="badge-gold">
+                            <i class="bi bi-thermometer-half me-1"></i>Base Temp (Tbase): @crop.BaseTemperature°C
+                        </span>
+                    </div>
+
+                    <div class="row g-3">
+                        @foreach (var stage in crop.Stages)
+                        {
+                            <div class="col-6 col-md-4 col-lg">
+                                <div class="p-3 rounded-3 bg-light border h-100">
+                                    <div class="small text-success fw-bold mb-1">Stage @stage.StageOrder</div>
+                                    <div class="fw-bold text-dark small mb-1">@stage.StageName</div>
+                                    <div class="badge bg-white text-dark border small">@stage.GddThreshold GDD</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
         </div>
+    </section>
+}
+
+<!-- 4-Step Workflow -->
+<section class="mb-5 fade-in-up">
+    <div class="text-center mb-4">
+        <span class="badge-gold mb-2 d-inline-block"><i class="bi bi-lightning-charge me-1"></i>How It Works</span>
+        <h2 class="fw-bold mb-1">From Sowing Date to Actionable Field Advice</h2>
+        <p class="text-muted">Automated daily tracking built with ASP.NET Core 8, SQL Server, and Open-Meteo.</p>
     </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-info bg-opacity-10 text-primary fs-3 mb-3" style="width:52px;height:52px;">
-                <i class="bi bi-cloud-rain"></i>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="agri-card agri-card-hover p-4 h-100">
+                <div class="step-badge mb-3">1</div>
+                <h5 class="fw-bold">Locate Your Field</h5>
+                <p class="text-muted small mb-0">
+                    Search your village or district with instant geocoding autocomplete and save your crop variety and sowing date.
+                </p>
             </div>
-            <h5 class="fw-bold">Live Weather &amp; Forecast</h5>
-            <p class="text-muted small mb-0">
-                Pulls historical temperatures since sowing plus 7-day forecast temperature &amp; rainfall charts via Open-Meteo.
-            </p>
         </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-danger bg-opacity-10 text-danger fs-3 mb-3" style="width:52px;height:52px;">
-                <i class="bi bi-journal-medical"></i>
+        <div class="col-md-6 col-lg-3">
+            <div class="agri-card agri-card-hover p-4 h-100">
+                <div class="step-badge mb-3">2</div>
+                <h5 class="fw-bold">Sync Weather History</h5>
+                <p class="text-muted small mb-0">
+                    Pulls daily Tmax, Tmin, and rainfall from sowing date to today plus a 7-day forecast, cached safely in SQL Server.
+                </p>
             </div>
-            <h5 class="fw-bold">Stage Advisories</h5>
-            <p class="text-muted small mb-0">
-                Actionable water, nutrient, and pest-risk guidance adjusted for recent and forecast rainfall in 3 languages.
-            </p>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="agri-card agri-card-hover p-4 h-100">
+                <div class="step-badge mb-3">3</div>
+                <h5 class="fw-bold">Track GDD &amp; Timeline</h5>
+                <p class="text-muted small mb-0">
+                    Calculates cumulative thermal time, highlights your current stage, and estimates the calendar date of the next stage.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="agri-card agri-card-hover p-4 h-100">
+                <div class="step-badge mb-3">4</div>
+                <h5 class="fw-bold">Act With Advisories</h5>
+                <p class="text-muted small mb-0">
+                    View irrigation, fertilizer, and pest guidance in English, Hindi, or Punjabi tailored to upcoming rainfall.
+                </p>
+            </div>
         </div>
     </div>
 </section>
@@ -104,9 +233,92 @@
         <div>
             <h6 class="fw-bold mb-1"><i class="bi bi-info-circle me-2 text-warning"></i>Important Agronomic Note</h6>
             <p class="text-muted small mb-0">
-                Growth stage results are thermal-time estimates derived from weather records and illustrative GDD thresholds, not exact field measurements. Always combine estimates with direct field scouting and local agricultural extension guidance.
+                Growth stage results are thermal-time estimates derived from weather records and illustrative GDD thresholds, not exact field measurements. Always verify with field observation and local agronomic guidance.
             </p>
         </div>
-        <a asp-controller="Account" asp-action="Login" class="btn btn-forest text-nowrap">Get Started</a>
+        @if (User.Identity?.IsAuthenticated != true)
+        {
+            <a asp-controller="Account" asp-action="Register" class="btn btn-forest text-nowrap">Start Monitoring</a>
+        }
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        (function () {
+            const cropsData = @Html.Raw(JsonSerializer.Serialize(Model.Crops.Select(c => new {
+                name = c.Name,
+                baseTemp = c.BaseTemperature,
+                stages = c.Stages.Select(s => new { name = s.StageName, threshold = s.GddThreshold })
+            })));
+
+            // Crop Showcase Tabs
+            document.querySelectorAll('.crop-tab-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const idx = btn.getAttribute('data-crop-index');
+                    document.querySelectorAll('.crop-tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('.crop-panel').forEach(p => {
+                        p.classList.toggle('d-none', p.getAttribute('data-crop-panel') !== idx);
+                    });
+                });
+            });
+
+            // Interactive GDD Simulator
+            const cropSelect = document.getElementById('simCropSelect');
+            const daysRange = document.getElementById('simDaysRange');
+            const tempRange = document.getElementById('simTempRange');
+            if (!cropSelect || cropsData.length === 0) return;
+
+            cropsData.forEach((c, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `${c.name} (Tbase ${c.baseTemp}°C)`;
+                cropSelect.appendChild(opt);
+            });
+
+            function updateSimulator() {
+                const crop = cropsData[parseInt(cropSelect.value, 10) || 0];
+                const days = parseInt(daysRange.value, 10);
+                const avgTemp = parseFloat(tempRange.value);
+
+                document.getElementById('simDaysVal').textContent = days;
+                document.getElementById('simTempVal').textContent = avgTemp;
+
+                const dailyGdd = Math.max(0, avgTemp - crop.baseTemp);
+                const totalGdd = Math.round(dailyGdd * days);
+
+                let currentStage = crop.stages[0];
+                let nextStage = null;
+                for (let i = 0; i < crop.stages.length; i++) {
+                    if (totalGdd >= crop.stages[i].threshold) {
+                        currentStage = crop.stages[i];
+                        nextStage = i + 1 < crop.stages.length ? crop.stages[i + 1] : null;
+                    }
+                }
+
+                const maxThreshold = crop.stages[crop.stages.length - 1].threshold || 1;
+                const pct = Math.min(100, Math.round((totalGdd / maxThreshold) * 100));
+
+                document.getElementById('simStageBadge').textContent = currentStage.name;
+                document.getElementById('simGddVal').textContent = totalGdd;
+                document.getElementById('simPctVal').textContent = pct + '%';
+                document.getElementById('simProgressBar').style.width = pct + '%';
+
+                const nextEl = document.getElementById('simNextInfo');
+                if (nextStage) {
+                    const rem = Math.max(0, nextStage.threshold - totalGdd);
+                    const estDays = dailyGdd > 0 ? Math.ceil(rem / dailyGdd) : '—';
+                    nextEl.innerHTML = `Next: <strong>${nextStage.name}</strong> (${rem} GDD remaining &bull; ~${estDays} days at ${dailyGdd.toFixed(1)} GDD/day)`;
+                } else {
+                    nextEl.innerHTML = `<strong class="text-success">Harvest threshold reached!</strong>`;
+                }
+            }
+
+            cropSelect.addEventListener('change', updateSimulator);
+            daysRange.addEventListener('input', updateSimulator);
+            tempRange.addEventListener('input', updateSimulator);
+            updateSimulator();
+        })();
+    </script>
+}

@@ -1,21 +1,57 @@
 using System.Diagnostics;
+using CropProgressMonitor.Data;
 using CropProgressMonitor.Models;
+using CropProgressMonitor.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CropProgressMonitor.Controllers;
 
 public class HomeController : Controller
 {
+    private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<HomeController> _logger;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ApplicationDbContext dbContext, ILogger<HomeController> logger)
     {
+        _dbContext = dbContext;
         _logger = logger;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        return View();
+        var crops = await _dbContext.Crops
+            .AsNoTracking()
+            .Include(c => c.CropStages.OrderBy(s => s.StageOrder))
+            .OrderBy(c => c.Name)
+            .ToListAsync(cancellationToken);
+
+        var totalFields = await _dbContext.Fields.AsNoTracking().CountAsync(cancellationToken);
+
+        var vm = new HomeViewModel
+        {
+            TotalCrops = crops.Count,
+            TotalStages = crops.Sum(c => c.CropStages.Count),
+            TotalRegisteredFields = totalFields,
+            Crops = crops.Select(c => new HomeCropShowcaseItem
+            {
+                Id = c.Id,
+                Name = c.Name,
+                BaseTemperature = c.BaseTemperature,
+                Description = c.Description,
+                Stages = c.CropStages
+                    .OrderBy(s => s.StageOrder)
+                    .Select(s => new HomeStagePreviewItem
+                    {
+                        StageOrder = s.StageOrder,
+                        StageName = s.StageName,
+                        GddThreshold = s.GddThreshold
+                    })
+                    .ToList()
+            }).ToList()
+        };
+
+        return View(vm);
     }
 
     public IActionResult Privacy()

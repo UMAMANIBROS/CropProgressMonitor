@@ -4,72 +4,159 @@
 }
 
 <div class="row justify-content-center my-4">
-    <div class="col-md-7 col-lg-6">
-        <div class="agri-card p-4 p-md-5 fade-in-up">
-            <div class="text-center mb-4">
-                <span class="badge-stage mb-2 d-inline-block"><i class="bi bi-person-plus me-1"></i>Create Farmer Account</span>
-                <h2 class="fw-bold mb-1">Join CropProgress Monitor</h2>
-                <p class="text-muted small">Track crop stages, forecast milestones, and stage-specific advisories for your fields.</p>
+    <div class="col-xl-10">
+        <div class="auth-shell row g-0 fade-in-up">
+            <!-- Dynamic Left Showcase Panel -->
+            <div class="col-lg-5 auth-brand-panel p-4 p-lg-5 d-flex flex-column justify-content-between">
+                <div class="position-relative" style="z-index:1;">
+                    <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2 mb-3">
+                        <i class="bi bi-person-check me-1"></i>Farmer Onboarding
+                    </span>
+                    <h2 class="fw-bold mb-3">Start Smart Crop Stage Tracking</h2>
+                    <p class="opacity-75 small mb-4">
+                        Create your farmer profile to register fields, track accumulated Growing Degree Days, and get timely weather-aware advice.
+                    </p>
+
+                    <div class="stat-pill mb-3">
+                        <div class="small fw-bold text-warning mb-1"><i class="bi bi-translate me-1"></i>Regional Language Support</div>
+                        <div class="small opacity-85">Choose English, Hindi (हिन्दी), or Punjabi (ਪੰਜਾਬੀ) for instant field advisories.</div>
+                    </div>
+                </div>
+
+                <ul class="list-unstyled small opacity-90 d-grid gap-2 mb-0 position-relative" style="z-index:1;">
+                    <li><i class="bi bi-check-circle-fill text-warning me-2"></i>Private account — only you see your fields</li>
+                    <li><i class="bi bi-check-circle-fill text-warning me-2"></i>No weather API key required</li>
+                    <li><i class="bi bi-check-circle-fill text-warning me-2"></i>Works across Wheat, Rice, Maize &amp; Cotton</li>
+                </ul>
             </div>
 
-            <form asp-action="Register" method="post" novalidate>
-                @Html.AntiForgeryToken()
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
-
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label fw-semibold"></label>
-                    <input asp-for="Name" class="form-control form-control-lg" placeholder="e.g., Harpreet Singh" />
-                    <span asp-validation-for="Name" class="text-danger small"></span>
+            <!-- Right Form Panel -->
+            <div class="col-lg-7 p-4 p-md-5 bg-white">
+                <div class="auth-switch-pills mb-4">
+                    <a asp-controller="Account" asp-action="Login">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+                    </a>
+                    <a asp-controller="Account" asp-action="Register" class="active">
+                        <i class="bi bi-person-plus me-1"></i>Create Account
+                    </a>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Email" class="form-label fw-semibold"></label>
-                    <input asp-for="Email" class="form-control form-control-lg" placeholder="farmer@example.com" />
-                    <span asp-validation-for="Email" class="text-danger small"></span>
-                </div>
+                <h3 class="fw-bold mb-1">Create Farmer Account</h3>
+                <p class="text-muted small mb-4">Fill in your details below to get started in seconds.</p>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-md-7">
-                        <label asp-for="Location" class="form-label fw-semibold"></label>
-                        <input asp-for="Location" class="form-control" placeholder="e.g., Phagwara, Punjab" />
-                        <span asp-validation-for="Location" class="text-danger small"></span>
+                <form asp-action="Register" method="post" novalidate data-show-loader="true" data-loader-text="Creating your farmer profile...">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-person text-success"></i></span>
+                                <input asp-for="Name" class="form-control" placeholder="e.g., Harpreet Singh" />
+                            </div>
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-envelope text-success"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="farmer@example.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
                     </div>
-                    <div class="col-md-5">
-                        <label asp-for="PreferredLanguage" class="form-label fw-semibold"></label>
-                        <select asp-for="PreferredLanguage" class="form-select">
-                            <option value="en">English</option>
-                            <option value="hi">Hindi (हिन्दी)</option>
-                            <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
-                        </select>
-                        <span asp-validation-for="PreferredLanguage" class="text-danger small"></span>
-                    </div>
-                </div>
 
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label asp-for="Password" class="form-label fw-semibold"></label>
-                        <input asp-for="Password" class="form-control" placeholder="Min. 6 characters" />
-                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <label asp-for="Location" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-geo-alt text-success"></i></span>
+                                <input asp-for="Location" class="form-control" placeholder="e.g., Phagwara, Punjab" />
+                            </div>
+                            <span asp-validation-for="Location" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-5">
+                            <label asp-for="PreferredLanguage" class="form-label fw-semibold"></label>
+                            <select asp-for="PreferredLanguage" class="form-select">
+                                <option value="en">English</option>
+                                <option value="hi">Hindi (हिन्दी)</option>
+                                <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                            </select>
+                            <span asp-validation-for="PreferredLanguage" class="text-danger small"></span>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
-                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Re-enter password" />
-                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="Password" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-lock text-success"></i></span>
+                                <input asp-for="Password" id="regPassword" class="form-control" placeholder="Min. 6 characters" />
+                                <button type="button" class="btn btn-outline-secondary" id="toggleRegPwd" aria-label="Show or hide password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength-bar mt-2">
+                                <div id="pwdStrengthFill" class="password-strength-fill"></div>
+                            </div>
+                            <div id="pwdStrengthText" class="small text-muted mt-1"></div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-shield-check text-success"></i></span>
+                                <input asp-for="ConfirmPassword" id="regConfirmPwd" class="form-control" placeholder="Re-enter password" />
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
                     </div>
-                </div>
 
-                <button type="submit" class="btn btn-forest btn-lg w-100 mb-3">
-                    <i class="bi bi-check2-circle me-2"></i>Register Account
-                </button>
-
-                <div class="text-center small text-muted">
-                    Already registered? <a asp-action="Login" class="text-success fw-semibold text-decoration-none">Sign in here</a>
-                </div>
-            </form>
+                    <button type="submit" class="btn btn-forest btn-lg w-100">
+                        <i class="bi bi-check2-circle me-2"></i>Create Farmer Account
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const pwdInput = document.getElementById('regPassword');
+            const fill = document.getElementById('pwdStrengthFill');
+            const label = document.getElementById('pwdStrengthText');
+
+            document.getElementById('toggleRegPwd')?.addEventListener('click', function () {
+                const icon = this.querySelector('i');
+                if (pwdInput.type === 'password') {
+                    pwdInput.type = 'text';
+                    icon.className = 'bi bi-eye-slash';
+                } else {
+                    pwdInput.type = 'password';
+                    icon.className = 'bi bi-eye';
+                }
+            });
+
+            pwdInput?.addEventListener('input', function () {
+                const v = pwdInput.value || '';
+                let score = 0;
+                if (v.length >= 6) score += 1;
+                if (/[a-z]/.test(v) && /[0-9]/.test(v)) score += 1;
+                if (/[A-Z]/.test(v) || /[^A-Za-z0-9]/.test(v)) score += 1;
+                if (v.length >= 10) score += 1;
+
+                const widths = ['0%', '30%', '55%', '80%', '100%'];
+                const colors = ['#E7EFE4', '#dc3545', '#E0A526', '#2E7D32', '#1F4D2B'];
+                const texts = ['', 'Weak', 'Fair (include numbers & letters)', 'Good', 'Strong'];
+
+                fill.style.width = widths[score];
+                fill.style.backgroundColor = colors[score];
+                label.textContent = texts[score];
+            });
+        })();
+    </script>
 }
