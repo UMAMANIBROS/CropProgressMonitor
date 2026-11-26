@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: cropprogress-monitor
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: OpenMeteo__GeocodingUrl
+        value: https://geocoding-api.open-meteo.com/v1/search
+      - key: OpenMeteo__ForecastUrl
+        value: https://api.open-meteo.com/v1/forecast
+      - key: OpenMeteo__ArchiveUrl
+        value: https://archive-api.open-meteo.com/v1/archive
