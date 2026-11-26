@@ -1,0 +1,85 @@
+@model AdvisoryViewModel
+@{
+    ViewData["Title"] = "Stage-Specific Advisory";
+}
+
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4 fade-in-up">
+    <div>
+        <span class="badge-stage mb-2 d-inline-block"><i class="bi bi-journal-medical me-1"></i>Agronomic Guidance</span>
+        <h2 class="fw-bold mb-1">@Model.FieldName &mdash; @Model.CropName</h2>
+        <p class="text-muted mb-0">
+            Estimated Stage: <strong class="text-success">@Model.Advisory.StageName</strong> &bull;
+            Accumulated GDD: <strong>@Model.AccumulatedGdd.ToString("F1") °C·d</strong>
+        </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <form asp-action="Index" method="get" class="d-flex gap-2">
+            <input type="hidden" name="lang" value="@Model.Language" />
+            <select name="fieldCropId" asp-items="Model.FieldCrops" class="form-select" onchange="this.form.submit()"></select>
+        </form>
+        <div class="btn-group" role="group" aria-label="Language switch">
+            <a asp-action="Index" asp-route-fieldCropId="@Model.FieldCropId" asp-route-lang="en" class="btn @(Model.Language == "en" ? "btn-forest" : "btn-outline-success")">EN</a>
+            <a asp-action="Index" asp-route-fieldCropId="@Model.FieldCropId" asp-route-lang="hi" class="btn @(Model.Language == "hi" ? "btn-forest" : "btn-outline-success")">हिन्दी</a>
+            <a asp-action="Index" asp-route-fieldCropId="@Model.FieldCropId" asp-route-lang="pa" class="btn @(Model.Language == "pa" ? "btn-forest" : "btn-outline-success")">ਪੰਜਾਬੀ</a>
+        </div>
+    </div>
+</div>
+
+<!-- Rainfall Notes Banner -->
+<div class="agri-card soil-accent-card p-4 mb-4 fade-in-up">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <h5 class="fw-bold mb-0"><i class="bi bi-cloud-rain-heavy text-primary me-2"></i>Weather &amp; Rainfall Field Notes</h5>
+        <span class="small text-muted">
+            Past 3d rain: <strong>@Model.Advisory.Recent3DayRainfallMm mm</strong> &bull;
+            Next 3d forecast: <strong>@Model.Advisory.Next3DayForecastRainfallMm mm</strong>
+        </span>
+    </div>
+    @if (Model.Advisory.RainfallNotes.Count == 0)
+    {
+        <p class="text-muted mb-0">Moderate conditions expected; proceed with stage-specific operations below.</p>
+    }
+    else
+    {
+        <ul class="mb-0 ps-3">
+            @foreach (var note in Model.Advisory.RainfallNotes)
+            {
+                <li class="fw-semibold text-dark mb-1">@note</li>
+            }
+        </ul>
+    }
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 text-primary fs-3 mb-3" style="width:52px;height:52px;">
+                <i class="bi bi-droplet-half"></i>
+            </div>
+            <h5 class="fw-bold">Water &amp; Irrigation</h5>
+            <p class="text-muted mb-0">@Model.Advisory.WaterAdvice</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success bg-opacity-10 text-success fs-3 mb-3" style="width:52px;height:52px;">
+                <i class="bi bi-flower1"></i>
+            </div>
+            <h5 class="fw-bold">Nutrient Management</h5>
+            <p class="text-muted mb-0">@Model.Advisory.NutrientAdvice</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-warning bg-opacity-25 text-dark fs-3 mb-3" style="width:52px;height:52px;">
+                <i class="bi bi-bug"></i>
+            </div>
+            <h5 class="fw-bold">Pest &amp; Weather Risks</h5>
+            <p class="text-muted mb-0">@Model.Advisory.RiskAdvice</p>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-light border small text-muted">
+    <i class="bi bi-exclamation-circle me-1"></i>
+    <strong>Advisory Disclaimer:</strong> Advisory information is general guidance based on estimated growth stages and weather data. It does not replace consultation with local agricultural experts or Krishi Vigyan Kendra (KVK) specialists.
+</div>

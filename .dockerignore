@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.git/
+**/app.db
+**/*.user
+**/*.suo
+TestResults/

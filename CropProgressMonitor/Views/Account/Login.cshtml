@@ -1,0 +1,69 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Farmer Login";
+}
+
+<div class="row justify-content-center my-4">
+    <div class="col-md-6 col-lg-5">
+        <div class="agri-card p-4 p-md-5 fade-in-up">
+            <div class="text-center mb-4">
+                <span class="badge-stage mb-2 d-inline-block"><i class="bi bi-shield-check me-1"></i>Farmer Portal</span>
+                <h2 class="fw-bold mb-1">Welcome Back</h2>
+                <p class="text-muted small">Sign in to view your fields, weather forecasts, and GDD progress.</p>
+            </div>
+
+            <form asp-action="Login" method="post" novalidate data-show-loader="true" data-loader-text="Signing in & loading fields...">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-semibold"></label>
+                    <input asp-for="Email" id="loginEmail" class="form-control form-control-lg" placeholder="farmer@cropprogress.local" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label fw-semibold"></label>
+                    <input asp-for="Password" id="loginPassword" class="form-control form-control-lg" placeholder="Enter your password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label small"></label>
+                </div>
+
+                <button type="submit" class="btn btn-forest btn-lg w-100 mb-3">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login to Dashboard
+                </button>
+            </form>
+
+            <div class="bg-light rounded-3 p-3 border mb-3">
+                <div class="small fw-bold text-success mb-2"><i class="bi bi-key me-1"></i>Seeded Demo Accounts</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="fillDemo('farmer@cropprogress.local','Farmer@123')">
+                        Fill Demo Farmer
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillDemo('admin@cropprogress.local','Admin@123')">
+                        Fill Admin
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center small text-muted">
+                New to CropProgress Monitor? <a asp-action="Register" class="text-success fw-semibold text-decoration-none">Register now</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function fillDemo(email, password) {
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = password;
+        }
+    </script>
+}

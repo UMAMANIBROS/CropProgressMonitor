@@ -1,0 +1,161 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Farmer Dashboard";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 fade-in-up">
+    <div>
+        <h2 class="fw-bold mb-1">Welcome, @Model.FarmerName</h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-geo-alt-fill text-success me-1"></i>@Model.FarmerLocation &bull;
+            Monitoring <strong>@Model.Fields.Count</strong> active crop field(s)
+        </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-action="Index" asp-route-refresh="true" class="btn btn-outline-success" data-show-loader="true" data-loader-text="Refreshing live Open-Meteo weather & estimates...">
+            <i class="bi bi-arrow-clockwise me-1"></i>Refresh Weather &amp; Estimates
+        </a>
+        <a asp-controller="Fields" asp-action="Create" class="btn btn-forest">
+            <i class="bi bi-plus-circle me-1"></i>Add Field &amp; Crop
+        </a>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.WarningMessage))
+{
+    <div class="alert alert-warning rounded-3 shadow-sm mb-4">
+        <i class="bi bi-wifi-off me-2"></i>@Model.WarningMessage
+    </div>
+}
+
+@if (Model.Fields.Count == 0)
+{
+    <div class="agri-card p-5 text-center fade-in-up">
+        <div class="display-4 text-success mb-3"><i class="bi bi-map"></i></div>
+        <h4 class="fw-bold">No fields registered yet</h4>
+        <p class="text-muted mb-4">Add your first field with its crop, location, and sowing date to start real-time GDD monitoring.</p>
+        <a asp-controller="Fields" asp-action="Create" class="btn btn-forest btn-lg px-4">
+            <i class="bi bi-plus-circle me-2"></i>Register First Field
+        </a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var field in Model.Fields)
+        {
+            <div class="col-lg-6">
+                <div class="agri-card agri-card-hover p-4 h-100 d-flex flex-column fade-in-up">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                        <div>
+                            <h4 class="fw-bold mb-1">@field.FieldName</h4>
+                            <div class="text-muted small">
+                                <i class="bi bi-geo-alt me-1"></i>@field.LocationName
+                                <span class="ms-2 badge bg-light text-dark border">@field.CropName @(string.IsNullOrEmpty(field.Variety) ? "" : $"({field.Variety})")</span>
+                            </div>
+                        </div>
+                        <span class="badge-stage text-nowrap">
+                            <i class="bi bi-flower2 me-1"></i>@field.CurrentStageName
+                        </span>
+                    </div>
+
+                    <!-- Weather snapshot -->
+                    <div class="bg-light rounded-3 p-3 mb-3 border d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        @if (field.CurrentWeather != null)
+                        {
+                            <div>
+                                <div class="small text-muted">Current Conditions</div>
+                                <div class="fw-bold fs-5 text-dark">
+                                    <i class="bi bi-thermometer-half text-warning me-1"></i>@field.CurrentWeather.Temperature.ToString("F1")°C
+                                    <span class="small fw-normal text-muted ms-2">
+                                        <i class="bi bi-droplet me-1 text-primary"></i>@field.CurrentWeather.RelativeHumidity.ToString("F0")% RH
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                        else if (field.TodayTmax.HasValue)
+                        {
+                            <div>
+                                <div class="small text-muted">Latest Daily Weather</div>
+                                <div class="fw-bold text-dark">
+                                    Max @field.TodayTmax.Value.ToString("F1")°C / Min @field.TodayTmin?.ToString("F1")°C
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="small text-muted">Weather cached</div>
+                        }
+
+                        <div class="text-end">
+                            <div class="small text-muted">Sown @field.SowingDate.ToString("dd MMM yyyy")</div>
+                            <div class="fw-semibold text-success">@field.DaysSinceSowing days since sowing</div>
+                        </div>
+                    </div>
+
+                    <!-- GDD Progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-semibold mb-1">
+                            <span>Accumulated GDD: <span class="text-success">@field.AccumulatedGdd.ToString("F1") °C·d</span></span>
+                            <span>@field.ProgressPercent.ToString("F0")% to Harvest</span>
+                        </div>
+                        <div class="agri-progress">
+                            <div class="agri-progress-bar" style="width: 0%;" data-target-width="@field.ProgressPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"></div>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            @if (!string.IsNullOrEmpty(field.NextStageName))
+                            {
+                                <span>
+                                    <i class="bi bi-calendar-event text-warning me-1"></i>
+                                    Next Stage: <strong>@field.NextStageName</strong>
+                                    @if (field.EstimatedNextStageDate.HasValue)
+                                    {
+                                        <span>(Est. <strong>@field.EstimatedNextStageDate.Value.ToString("dd MMM yyyy")</strong>)</span>
+                                    }
+                                </span>
+                            }
+                            else
+                            {
+                                <span><i class="bi bi-check-all text-success me-1"></i>Final Harvest threshold reached!</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="mt-auto pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div class="d-flex flex-wrap gap-1">
+                            <a asp-controller="Growth" asp-action="Timeline" asp-route-id="@field.FieldCropId" class="btn btn-sm btn-forest" data-show-loader="true">
+                                <i class="bi bi-signpost-split me-1"></i>Timeline
+                            </a>
+                            <a asp-controller="Weather" asp-action="Index" asp-route-fieldId="@field.FieldId" class="btn btn-sm btn-outline-primary" data-show-loader="true">
+                                <i class="bi bi-cloud-sun me-1"></i>Weather
+                            </a>
+                            <a asp-controller="Advisory" asp-action="Index" asp-route-fieldCropId="@field.FieldCropId" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-journal-medical me-1"></i>Advisory
+                            </a>
+                            <a asp-controller="History" asp-action="Index" asp-route-fieldCropId="@field.FieldCropId" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-clock-history me-1"></i>History
+                            </a>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <a asp-controller="Fields" asp-action="Edit" asp-route-id="@field.FieldCropId" class="btn btn-sm btn-light border" title="Edit Field">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form asp-controller="Fields" asp-action="Delete" asp-route-id="@field.FieldCropId" method="post" class="d-inline" onsubmit="return confirm('Delete field @field.FieldName and all its history?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-light border text-danger" title="Delete Field">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="alert alert-light border mt-4 small text-muted">
+    <i class="bi bi-info-circle me-1"></i>
+    <strong>Disclaimer:</strong> Stage badges and projected dates are weather-based thermal-time estimates, not exact field measurements.
+</div>

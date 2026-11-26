@@ -1,0 +1,150 @@
+@model HistoryViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Estimate History & Field Comparison";
+}
+
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4 fade-in-up">
+    <div>
+        <span class="badge-stage mb-2 d-inline-block"><i class="bi bi-clock-history me-1"></i>Seasonal Progress</span>
+        <h2 class="fw-bold mb-1">Estimate History &amp; Comparison</h2>
+        <p class="text-muted mb-0">Review past growth estimates and compare cumulative GDD curves across your fields.</p>
+    </div>
+</div>
+
+<div class="agri-card p-4 mb-4 fade-in-up">
+    <form asp-action="Index" method="get" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label fw-semibold">Primary Field &amp; Crop</label>
+            <select name="fieldCropId" asp-items="Model.FieldCrops" class="form-select"></select>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label fw-semibold">Compare With (Optional)</label>
+            <select name="compareFieldCropId" class="form-select">
+                <option value="">-- No Comparison --</option>
+                @foreach (var item in Model.FieldCrops)
+                {
+                    if (item.Value != Model.SelectedFieldCropId.ToString())
+                    {
+                        <option value="@item.Value" selected="@(Model.CompareFieldCropId?.ToString() == item.Value)">@item.Text</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-forest w-100">
+                <i class="bi bi-bar-chart me-1"></i>Apply
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="agri-card p-4 mb-4 fade-in-up">
+    <h5 class="fw-bold mb-3"><i class="bi bi-graph-up text-success me-2"></i>Accumulated GDD by Days After Sowing</h5>
+    <div style="height: 320px;">
+        <canvas id="historyCompareChart"></canvas>
+    </div>
+</div>
+
+<div class="agri-card p-4 fade-in-up">
+    <h5 class="fw-bold mb-3"><i class="bi bi-table text-success me-2"></i>Saved Daily Growth Estimates (@Model.SelectedLabel)</h5>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Estimate Date</th>
+                    <th>Accumulated GDD</th>
+                    <th>Estimated Stage</th>
+                    <th>Next Stage</th>
+                    <th>Est. Next Stage Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Estimates.Count == 0)
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No saved estimate snapshots yet.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var row in Model.Estimates)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@row.EstimateDate.ToString("dd MMM yyyy")</td>
+                            <td>@row.AccumulatedGdd.ToString("F1") °C·d</td>
+                            <td><span class="badge-stage">@row.CurrentStageName</span></td>
+                            <td>@(row.NextStageName ?? "Final Stage")</td>
+                            <td>@(row.NextStageDate.HasValue ? row.NextStageDate.Value.ToString("dd MMM yyyy") : "—")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const primary = @Html.Raw(JsonSerializer.Serialize(Model.PrimarySeries));
+            const compare = @Html.Raw(JsonSerializer.Serialize(Model.CompareSeries));
+            const primaryLabel = @Html.Raw(JsonSerializer.Serialize(Model.SelectedLabel));
+            const compareLabel = @Html.Raw(JsonSerializer.Serialize(Model.CompareLabel));
+
+            const maxLen = Math.max(
+                primary.length > 0 ? Math.max(...primary.map(p => p.daysAfterSowing)) : 0,
+                compare.length > 0 ? Math.max(...compare.map(p => p.daysAfterSowing)) : 0
+            );
+
+            const labels = [];
+            for (let d = 0; d <= maxLen; d++) {
+                labels.push('Day ' + d);
+            }
+
+            const mapByDay = (arr) => {
+                const map = {};
+                arr.forEach(p => { map[p.daysAfterSowing] = p.accumulatedGdd; });
+                return labels.map((_, idx) => map[idx] ?? null);
+            };
+
+            const datasets = [{
+                label: primaryLabel,
+                data: mapByDay(primary),
+                borderColor: '#1F4D2B',
+                backgroundColor: 'rgba(31, 77, 43, 0.14)',
+                fill: true,
+                tension: 0.3,
+                spanGaps: true
+            }];
+
+            if (compare && compare.length > 0) {
+                datasets.push({
+                    label: compareLabel || 'Comparison Field',
+                    data: mapByDay(compare),
+                    borderColor: '#E0A526',
+                    backgroundColor: 'rgba(224, 165, 38, 0.14)',
+                    fill: false,
+                    tension: 0.3,
+                    spanGaps: true
+                });
+            }
+
+            const ctx = document.getElementById('historyCompareChart');
+            if (!ctx) return;
+
+            new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Accumulated GDD (°C·d)' } },
+                        x: { title: { display: true, text: 'Days After Sowing' } }
+                    }
+                }
+            });
+        })();
+    </script>
+}

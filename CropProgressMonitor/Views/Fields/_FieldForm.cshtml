@@ -1,0 +1,57 @@
+@model FieldFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
+
+<div class="mb-3">
+    <label asp-for="FieldName" class="form-label fw-semibold"></label>
+    <input asp-for="FieldName" class="form-control form-control-lg" placeholder="e.g., North Canal Plot" />
+    <span asp-validation-for="FieldName" class="text-danger small"></span>
+</div>
+
+<div class="mb-3 position-relative">
+    <label for="locationSearchInput" class="form-label fw-semibold">
+        Location Search <span class="text-muted fw-normal small">(type village, city, or district — Open-Meteo Geocoding)</span>
+    </label>
+    <div class="input-group">
+        <span class="input-group-text bg-white"><i class="bi bi-search text-success"></i></span>
+        <input asp-for="LocationName" id="locationSearchInput" class="form-control form-control-lg" autocomplete="off" placeholder="Start typing e.g., Phagwara, Ludhiana, Karnal..." />
+        <span id="geoSpinner" class="input-group-text bg-white d-none">
+            <span class="spinner-border spinner-border-sm text-success"></span>
+        </span>
+    </div>
+    <div id="locationDropdown" class="list-group autocomplete-dropdown d-none"></div>
+    <span asp-validation-for="LocationName" class="text-danger small"></span>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <label asp-for="Latitude" class="form-label fw-semibold"></label>
+        <input asp-for="Latitude" id="latitudeInput" class="form-control" step="any" placeholder="31.2240" />
+        <span asp-validation-for="Latitude" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Longitude" class="form-label fw-semibold"></label>
+        <input asp-for="Longitude" id="longitudeInput" class="form-control" step="any" placeholder="75.7708" />
+        <span asp-validation-for="Longitude" class="text-danger small"></span>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-5">
+        <label asp-for="CropId" class="form-label fw-semibold"></label>
+        <select asp-for="CropId" asp-items="Model.AvailableCrops" class="form-select">
+            <option value="">-- Select Crop --</option>
+        </select>
+        <span asp-validation-for="CropId" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Variety" class="form-label fw-semibold"></label>
+        <input asp-for="Variety" class="form-control" placeholder="e.g., HD-3086" />
+        <span asp-validation-for="Variety" class="text-danger small"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="SowingDate" class="form-label fw-semibold"></label>
+        <input asp-for="SowingDate" type="date" max="@DateTime.UtcNow.ToString("yyyy-MM-dd")" class="form-control" />
+        <span asp-validation-for="SowingDate" class="text-danger small"></span>
+    </div>
+</div>

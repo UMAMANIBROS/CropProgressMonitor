@@ -1,0 +1,144 @@
+@model CropStageFormViewModel
+@{
+    var crop = ViewBag.Crop as Crop;
+    ViewData["Title"] = $"Stages - {crop?.Name ?? Model.CropName}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+    <div>
+        <span class="badge-gold mb-2 d-inline-block"><i class="bi bi-diagram-3 me-1"></i>Crop Configuration</span>
+        <h2 class="fw-bold mb-0">@(crop?.Name ?? Model.CropName) &mdash; Stages &amp; Advisories</h2>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>All Crops
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="agri-card p-4 fade-in-up">
+            <h5 class="fw-bold mb-3">Existing Stages</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Stage Name</th>
+                            <th>GDD Threshold</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (crop != null)
+                        {
+                            @foreach (var s in crop.CropStages.OrderBy(x => x.StageOrder))
+                            {
+                                <tr>
+                                    <td class="fw-bold">@s.StageOrder</td>
+                                    <td>@s.StageName</td>
+                                    <td>@s.GddThreshold GDD</td>
+                                    <td class="text-end">
+                                        <a asp-action="EditStage" asp-route-stageId="@s.Id" class="btn btn-sm btn-light border me-1">Edit</a>
+                                        <form asp-action="DeleteStage" method="post" class="d-inline" onsubmit="return confirm('Delete stage @s.StageName?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="stageId" value="@s.Id" />
+                                            <input type="hidden" name="cropId" value="@crop.Id" />
+                                            <button type="submit" class="btn btn-sm btn-light border text-danger">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="agri-card p-4 fade-in-up">
+            <h5 class="fw-bold mb-3">@(Model.StageId.HasValue ? "Edit Stage & Advisory" : "Add Stage & Advisory")</h5>
+            <form asp-action="SaveStage" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="StageId" />
+                <input type="hidden" asp-for="CropId" />
+                <input type="hidden" asp-for="CropName" />
+
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <label asp-for="StageOrder" class="form-label small fw-semibold"></label>
+                        <input asp-for="StageOrder" class="form-control" />
+                        <span asp-validation-for="StageOrder" class="text-danger small"></span>
+                    </div>
+                    <div class="col-8">
+                        <label asp-for="GddThreshold" class="form-label small fw-semibold"></label>
+                        <input asp-for="GddThreshold" class="form-control" step="1" />
+                        <span asp-validation-for="GddThreshold" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StageName" class="form-label small fw-semibold"></label>
+                    <input asp-for="StageName" class="form-control" placeholder="e.g., Flowering" />
+                    <span asp-validation-for="StageName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-2">
+                    <label asp-for="WaterAdvice" class="form-label small fw-semibold"></label>
+                    <textarea asp-for="WaterAdvice" class="form-control form-control-sm" rows="2"></textarea>
+                    <span asp-validation-for="WaterAdvice" class="text-danger small"></span>
+                </div>
+                <div class="mb-2">
+                    <label asp-for="NutrientAdvice" class="form-label small fw-semibold"></label>
+                    <textarea asp-for="NutrientAdvice" class="form-control form-control-sm" rows="2"></textarea>
+                    <span asp-validation-for="NutrientAdvice" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="RiskAdvice" class="form-label small fw-semibold"></label>
+                    <textarea asp-for="RiskAdvice" class="form-control form-control-sm" rows="2"></textarea>
+                    <span asp-validation-for="RiskAdvice" class="text-danger small"></span>
+                </div>
+
+                <details class="mb-3">
+                    <summary class="small fw-semibold text-success mb-2" style="cursor:pointer;">Optional Hindi &amp; Punjabi Translations</summary>
+                    <div class="mb-2">
+                        <label asp-for="WaterAdviceHi" class="form-label small"></label>
+                        <input asp-for="WaterAdviceHi" class="form-control form-control-sm" />
+                    </div>
+                    <div class="mb-2">
+                        <label asp-for="NutrientAdviceHi" class="form-label small"></label>
+                        <input asp-for="NutrientAdviceHi" class="form-control form-control-sm" />
+                    </div>
+                    <div class="mb-2">
+                        <label asp-for="RiskAdviceHi" class="form-label small"></label>
+                        <input asp-for="RiskAdviceHi" class="form-control form-control-sm" />
+                    </div>
+                    <div class="mb-2">
+                        <label asp-for="WaterAdvicePa" class="form-label small"></label>
+                        <input asp-for="WaterAdvicePa" class="form-control form-control-sm" />
+                    </div>
+                    <div class="mb-2">
+                        <label asp-for="NutrientAdvicePa" class="form-label small"></label>
+                        <input asp-for="NutrientAdvicePa" class="form-control form-control-sm" />
+                    </div>
+                    <div class="mb-2">
+                        <label asp-for="RiskAdvicePa" class="form-label small"></label>
+                        <input asp-for="RiskAdvicePa" class="form-control form-control-sm" />
+                    </div>
+                </details>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-forest flex-grow-1">Save Stage</button>
+                    @if (Model.StageId.HasValue)
+                    {
+                        <a asp-action="Stages" asp-route-cropId="@Model.CropId" class="btn btn-light border">New</a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,75 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Farmer Registration";
+}
+
+<div class="row justify-content-center my-4">
+    <div class="col-md-7 col-lg-6">
+        <div class="agri-card p-4 p-md-5 fade-in-up">
+            <div class="text-center mb-4">
+                <span class="badge-stage mb-2 d-inline-block"><i class="bi bi-person-plus me-1"></i>Create Farmer Account</span>
+                <h2 class="fw-bold mb-1">Join CropProgress Monitor</h2>
+                <p class="text-muted small">Track crop stages, forecast milestones, and stage-specific advisories for your fields.</p>
+            </div>
+
+            <form asp-action="Register" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-semibold"></label>
+                    <input asp-for="Name" class="form-control form-control-lg" placeholder="e.g., Harpreet Singh" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-semibold"></label>
+                    <input asp-for="Email" class="form-control form-control-lg" placeholder="farmer@example.com" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-7">
+                        <label asp-for="Location" class="form-label fw-semibold"></label>
+                        <input asp-for="Location" class="form-control" placeholder="e.g., Phagwara, Punjab" />
+                        <span asp-validation-for="Location" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-5">
+                        <label asp-for="PreferredLanguage" class="form-label fw-semibold"></label>
+                        <select asp-for="PreferredLanguage" class="form-select">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi (हिन्दी)</option>
+                            <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                        </select>
+                        <span asp-validation-for="PreferredLanguage" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label fw-semibold"></label>
+                        <input asp-for="Password" class="form-control" placeholder="Min. 6 characters" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Re-enter password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-forest btn-lg w-100 mb-3">
+                    <i class="bi bi-check2-circle me-2"></i>Register Account
+                </button>
+
+                <div class="text-center small text-muted">
+                    Already registered? <a asp-action="Login" class="text-success fw-semibold text-decoration-none">Sign in here</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

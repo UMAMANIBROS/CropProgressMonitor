@@ -1,0 +1,82 @@
+@model AdminCropsViewModel
+@{
+    ViewData["Title"] = "Admin - Crops & Thresholds";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 fade-in-up">
+    <div>
+        <span class="badge-gold mb-2 d-inline-block"><i class="bi bi-sliders me-1"></i>Agronomy Admin</span>
+        <h2 class="fw-bold mb-1">Manage Crops &amp; Stage Thresholds</h2>
+        <p class="text-muted mb-0">Add new crops, adjust base temperatures, and configure GDD stage thresholds without code changes.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="agri-card p-4 fade-in-up">
+            <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle text-success me-2"></i>Add New Crop</h5>
+            <form asp-action="CreateCrop" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label asp-for="NewCrop.Name" class="form-label fw-semibold"></label>
+                    <input asp-for="NewCrop.Name" class="form-control" placeholder="e.g., Mustard" />
+                    <span asp-validation-for="NewCrop.Name" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="NewCrop.BaseTemperature" class="form-label fw-semibold"></label>
+                    <input asp-for="NewCrop.BaseTemperature" class="form-control" step="0.1" />
+                    <span asp-validation-for="NewCrop.BaseTemperature" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="NewCrop.Description" class="form-label fw-semibold"></label>
+                    <textarea asp-for="NewCrop.Description" class="form-control" rows="2" placeholder="Optional agronomic notes..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-forest w-100">
+                    <i class="bi bi-plus-lg me-1"></i>Create Crop
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="agri-card p-4 fade-in-up">
+            <h5 class="fw-bold mb-3"><i class="bi bi-grid text-success me-2"></i>Configured Crops</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Crop</th>
+                            <th>Base Temp</th>
+                            <th>Stages</th>
+                            <th>Max GDD</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var crop in Model.Crops)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">@crop.Name</div>
+                                    <div class="small text-muted">@crop.Description</div>
+                                </td>
+                                <td>@crop.BaseTemperature°C</td>
+                                <td><span class="badge-stage">@crop.CropStages.Count stages</span></td>
+                                <td>@(crop.CropStages.Any() ? crop.CropStages.Max(s => s.GddThreshold).ToString("F0") : "0")</td>
+                                <td class="text-end">
+                                    <a asp-action="Stages" asp-route-cropId="@crop.Id" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-pencil-square me-1"></i>Manage Stages
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

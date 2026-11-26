@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CropProgressMonitor.Tests/CropProgressMonitor.Tests.csproj" />
+  <Project Path="CropProgressMonitor/CropProgressMonitor.csproj" />
+</Solution>

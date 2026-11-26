@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "CropProgressMonitor (Web - HTTP)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/CropProgressMonitor/bin/Debug/net8.0/CropProgressMonitor.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/CropProgressMonitor",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5052"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/CropProgressMonitor/Views"
+      }
+    }
+  ]
+}

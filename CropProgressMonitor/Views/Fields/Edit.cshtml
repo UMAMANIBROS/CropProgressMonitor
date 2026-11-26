@@ -1,0 +1,83 @@
+@model FieldFormViewModel
+@{
+    ViewData["Title"] = "Edit Field & Crop";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="agri-card p-4 p-md-5 fade-in-up">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <span class="badge-gold mb-2 d-inline-block"><i class="bi bi-pencil-square me-1"></i>Update Field</span>
+                    <h2 class="fw-bold mb-0">Edit Field &amp; Crop</h2>
+                </div>
+                <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Back
+                </a>
+            </div>
+
+            <form asp-action="Edit" asp-route-id="@Model.FieldCropId" method="post" data-show-loader="true" data-loader-text="Recalculating GDD & stage estimate...">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="FieldId" />
+                <input type="hidden" asp-for="FieldCropId" />
+                <partial name="_FieldForm" model="Model" />
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-forest btn-lg px-4">
+                        <i class="bi bi-save me-2"></i>Update &amp; Recalculate
+                    </button>
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-light border btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const searchInput = document.getElementById('locationSearchInput');
+            const dropdown = document.getElementById('locationDropdown');
+            const latInput = document.getElementById('latitudeInput');
+            const lonInput = document.getElementById('longitudeInput');
+            const spinner = document.getElementById('geoSpinner');
+            let timer = null;
+
+            searchInput.addEventListener('input', function () {
+                const q = searchInput.value.trim();
+                clearTimeout(timer);
+                if (q.length < 2) {
+                    dropdown.classList.add('d-none');
+                    return;
+                }
+                timer = setTimeout(async function () {
+                    spinner.classList.remove('d-none');
+                    try {
+                        const res = await fetch('/Fields/SearchLocation?query=' + encodeURIComponent(q));
+                        const items = await res.json();
+                        dropdown.innerHTML = '';
+                        if (items && items.length > 0) {
+                            items.forEach(function (item) {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                                btn.innerHTML = `<span><i class="bi bi-geo-alt text-success me-2"></i>${item.displayName}</span><small class="text-muted">${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}</small>`;
+                                btn.addEventListener('click', function () {
+                                    searchInput.value = item.displayName;
+                                    latInput.value = item.latitude.toFixed(4);
+                                    lonInput.value = item.longitude.toFixed(4);
+                                    dropdown.classList.add('d-none');
+                                });
+                                dropdown.appendChild(btn);
+                            });
+                            dropdown.classList.remove('d-none');
+                        }
+                    } finally {
+                        spinner.classList.add('d-none');
+                    }
+                }, 320);
+            });
+        })();
+    </script>
+}

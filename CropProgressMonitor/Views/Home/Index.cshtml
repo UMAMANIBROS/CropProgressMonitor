@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Real-Time Agricultural Growth Stage Estimation";
+}
+
+<section class="hero-banner p-4 p-md-5 mb-4 fade-in-up">
+    <div class="row align-items-center g-4 position-relative" style="z-index:1;">
+        <div class="col-lg-8">
+            <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2 mb-3">
+                <i class="bi bi-thermometer-sun me-1"></i>Thermal-Time GDD Intelligence
+            </span>
+            <h1 class="display-5 fw-bold mb-3">CropProgress Monitor</h1>
+            <p class="lead opacity-90 mb-4">
+                Estimate real-time crop growth stages from sowing date, field coordinates, and live Open-Meteo temperature &amp; rainfall data. Plan irrigation, fertilization, and crop protection on time.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-wheat btn-lg px-4" data-show-loader="true">
+                        <i class="bi bi-grid-1x2 me-2"></i>Open Farmer Dashboard
+                    </a>
+                    <a asp-controller="Fields" asp-action="Create" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-plus-circle me-2"></i>Register a Field
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-wheat btn-lg px-4">
+                        <i class="bi bi-person-plus me-2"></i>Register as Farmer
+                    </a>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Farmer Login
+                    </a>
+                }
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="bg-white text-dark rounded-4 p-4 shadow">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="fw-bold text-success"><i class="bi bi-calculator me-1"></i>GDD Formula</span>
+                    <span class="badge-gold small">Near Real-Time</span>
+                </div>
+                <div class="p-3 rounded-3 bg-light border mb-3 text-center">
+                    <code class="fs-6 fw-bold text-dark">GDD = max(0, (Tmax + Tmin)/2 − Tbase)</code>
+                </div>
+                <ul class="list-unstyled small mb-0 text-muted d-grid gap-2">
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Weather-adjusted instead of fixed calendars</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>7-day forecast next-stage projection</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>English, Hindi &amp; Punjabi advisories</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success bg-opacity-10 text-success fs-3 mb-3" style="width:52px;height:52px;">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <h5 class="fw-bold">Field &amp; Geocoding</h5>
+            <p class="text-muted small mb-0">
+                Register multiple fields with crop, optional variety, sowing date, and instant village/city coordinate lookup.
+            </p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-warning bg-opacity-25 text-dark fs-3 mb-3" style="width:52px;height:52px;">
+                <i class="bi bi-signpost-split"></i>
+            </div>
+            <h5 class="fw-bold">Stage Timeline</h5>
+            <p class="text-muted small mb-0">
+                Track progression from Sowing through Germination, Vegetative Growth, Flowering, Grain Filling, and Harvest.
+            </p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-info bg-opacity-10 text-primary fs-3 mb-3" style="width:52px;height:52px;">
+                <i class="bi bi-cloud-rain"></i>
+            </div>
+            <h5 class="fw-bold">Live Weather &amp; Forecast</h5>
+            <p class="text-muted small mb-0">
+                Pulls historical temperatures since sowing plus 7-day forecast temperature &amp; rainfall charts via Open-Meteo.
+            </p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="agri-card agri-card-hover p-4 h-100 fade-in-up">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-danger bg-opacity-10 text-danger fs-3 mb-3" style="width:52px;height:52px;">
+                <i class="bi bi-journal-medical"></i>
+            </div>
+            <h5 class="fw-bold">Stage Advisories</h5>
+            <p class="text-muted small mb-0">
+                Actionable water, nutrient, and pest-risk guidance adjusted for recent and forecast rainfall in 3 languages.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="agri-card soil-accent-card p-4 fade-in-up">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+        <div>
+            <h6 class="fw-bold mb-1"><i class="bi bi-info-circle me-2 text-warning"></i>Important Agronomic Note</h6>
+            <p class="text-muted small mb-0">
+                Growth stage results are thermal-time estimates derived from weather records and illustrative GDD thresholds, not exact field measurements. Always combine estimates with direct field scouting and local agricultural extension guidance.
+            </p>
+        </div>
+        <a asp-controller="Account" asp-action="Login" class="btn btn-forest text-nowrap">Get Started</a>
+    </div>
+</section>

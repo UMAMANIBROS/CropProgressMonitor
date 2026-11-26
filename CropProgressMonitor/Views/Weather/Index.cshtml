@@ -1,0 +1,156 @@
+@model WeatherViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Weather & 7-Day Forecast";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 fade-in-up">
+    <div>
+        <span class="badge-stage mb-2 d-inline-block"><i class="bi bi-cloud-sun me-1"></i>Open-Meteo Weather</span>
+        <h2 class="fw-bold mb-1">@Model.FieldName &mdash; Weather Forecast</h2>
+        <p class="text-muted mb-0">
+            <i class="bi bi-geo-alt me-1"></i>@Model.LocationName (@Model.Latitude.ToString("F3"), @Model.Longitude.ToString("F3"))
+        </p>
+    </div>
+    <form asp-action="Index" method="get" class="d-flex gap-2 align-items-center" data-show-loader="true" data-loader-text="Loading forecast for selected field...">
+        <select name="fieldId" asp-items="Model.Fields" class="form-select" onchange="this.form.submit()"></select>
+    </form>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.WarningMessage))
+{
+    <div class="alert alert-warning rounded-3 mb-4">
+        <i class="bi bi-wifi-off me-2"></i>@Model.WarningMessage
+    </div>
+}
+
+@if (Model.Current != null)
+{
+    <div class="agri-card p-4 mb-4 fade-in-up" style="background: linear-gradient(135deg, #1F4D2B 0%, #2E7D32 100%); color: #fff;">
+        <div class="row align-items-center g-3">
+            <div class="col-md-4">
+                <div class="small text-white-50">Current Conditions</div>
+                <div class="display-4 fw-bold">@Model.Current.Temperature.ToString("F1")°C</div>
+                <div class="small text-white-50">Updated @Model.Current.ObservedAt.ToString("dd MMM, HH:mm")</div>
+            </div>
+            <div class="col-md-8">
+                <div class="row g-3 text-center">
+                    <div class="col-4">
+                        <div class="p-3 rounded-3 bg-white bg-opacity-10">
+                            <i class="bi bi-droplet fs-4 text-info"></i>
+                            <div class="small text-white-50 mt-1">Humidity</div>
+                            <div class="fw-bold fs-5">@Model.Current.RelativeHumidity.ToString("F0")%</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 rounded-3 bg-white bg-opacity-10">
+                            <i class="bi bi-wind fs-4 text-warning"></i>
+                            <div class="small text-white-50 mt-1">Wind Speed</div>
+                            <div class="fw-bold fs-5">@Model.Current.WindSpeed.ToString("F1") km/h</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 rounded-3 bg-white bg-opacity-10">
+                            <i class="bi bi-cloud-rain fs-4 text-light"></i>
+                            <div class="small text-white-50 mt-1">Precipitation</div>
+                            <div class="fw-bold fs-5">@Model.Current.Precipitation.ToString("F1") mm</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="agri-card p-4 mb-4 fade-in-up">
+    <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-line text-success me-2"></i>7-Day Temperature &amp; Rainfall Forecast</h5>
+    <div style="height: 310px;">
+        <canvas id="weatherForecastChart"></canvas>
+    </div>
+</div>
+
+<div class="row g-3 fade-in-up">
+    @foreach (var day in Model.Forecast7Days)
+    {
+        <div class="col-6 col-md-4 col-lg">
+            <div class="agri-card p-3 text-center h-100">
+                <div class="fw-bold text-success">@day.Date.ToString("ddd")</div>
+                <div class="small text-muted mb-2">@day.Date.ToString("dd MMM")</div>
+                <div class="fs-5 fw-bold text-danger">@day.Tmax.ToString("F0")°</div>
+                <div class="small text-primary mb-2">Min @day.Tmin.ToString("F0")°</div>
+                <span class="badge bg-info bg-opacity-10 text-primary border">
+                    <i class="bi bi-droplet-fill me-1"></i>@day.Rainfall.ToString("F1") mm
+                </span>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const forecast = @Html.Raw(JsonSerializer.Serialize(Model.Forecast7Days.Select(f => new {
+                label = f.Date.ToString("ddd dd"),
+                tmax = f.Tmax,
+                tmin = f.Tmin,
+                rain = f.Rainfall
+            })));
+
+            const ctx = document.getElementById('weatherForecastChart');
+            if (!ctx || forecast.length === 0) return;
+
+            new Chart(ctx, {
+                data: {
+                    labels: forecast.map(d => d.label),
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Max Temp (°C)',
+                            data: forecast.map(d => d.tmax),
+                            borderColor: '#D84315',
+                            backgroundColor: 'rgba(216, 67, 21, 0.15)',
+                            tension: 0.3,
+                            yAxisID: 'yTemp'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Min Temp (°C)',
+                            data: forecast.map(d => d.tmin),
+                            borderColor: '#1E88E5',
+                            backgroundColor: 'rgba(30, 136, 229, 0.15)',
+                            tension: 0.3,
+                            yAxisID: 'yTemp'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Rainfall (mm)',
+                            data: forecast.map(d => d.rain),
+                            backgroundColor: 'rgba(46, 125, 50, 0.45)',
+                            borderColor: '#2E7D32',
+                            borderWidth: 1,
+                            yAxisID: 'yRain'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        yTemp: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Temperature (°C)' }
+                        },
+                        yRain: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Rainfall (mm)' }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+}
